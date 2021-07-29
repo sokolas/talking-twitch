@@ -3,8 +3,9 @@
     <!-- Please go <a href="https://twitchapps.com/tmi/" target="blank">here</a>, generate and copy the token -->
     <div>
       <input type="text" placeholder="channel" id="username" v-model="name"/>
-      <button v-on:click="connect">Connect</button>
-      <input type="checkbox" v-model="saveToStorage" id="savetostore"/> <label for="savetostore">save voice for users</label>
+      <button v-on:click="connect">Connect</button><br>
+      <input type="checkbox" v-model="saveToStorage" id="savetostore"/> <label for="savetostore">save voice for users</label><br>
+      <input type="checkbox" v-model="russian" id="russian"/> <label for="russian">Russian for all</label>
     </div>
     <hr>
     <div v-for="message in messages" :key=message>
@@ -27,6 +28,7 @@ export default {
     }
     const settings = {};
     const saveToStorage = ref(false);
+    const russian = ref(false);
 
     function save(user, voicesettings) {
       if (saveToStorage.value) {
@@ -72,7 +74,7 @@ export default {
         const voice = voices.find(v => v.name === voiceSettings.name);
         if (voice) {
           const u = new SpeechSynthesisUtterance(text);
-          u.lang = voiceSettings.lang;
+          u.lang = russian.value ? 'ru-RU' : voiceSettings.lang;
           u.pitch = voiceSettings.pitch;
           // u.rate = voiceSettings.rate;
           synth.speak(u);
@@ -82,7 +84,7 @@ export default {
     const messages = computed(() => store.state.messages);
 
     return {
-      name, connect, messages, saveToStorage
+      name, connect, messages, saveToStorage, russian
     }
   },
 
