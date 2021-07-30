@@ -31,7 +31,8 @@ export default {
     const russian = ref(false);
 
     if (props.channel) {
-      name.value = props.channel;
+      const channel = toRef(props, 'channel');
+      name.value = channel.value;
       connect();
     }
 
