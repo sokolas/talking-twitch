@@ -19,7 +19,7 @@ import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 
 export default {
-  setup() {
+  setup(props) {
     const name = ref("");
     const store = useStore();
     function connect() {
@@ -29,6 +29,11 @@ export default {
     const settings = {};
     const saveToStorage = ref(false);
     const russian = ref(false);
+
+    if (props.channel) {
+      name.value = props.channel;
+      connect();
+    }
 
     function save(user, voicesettings) {
       if (saveToStorage.value) {

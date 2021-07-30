@@ -3,9 +3,10 @@ import Home from '../views/Home.vue'
 
 const routes = [
   {
-    path: '/',
+    path: '/:channel',
     name: 'Home',
-    component: Home
+    component: Home,
+    props: true
   }
 ]
 
