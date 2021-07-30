@@ -2,10 +2,12 @@
   <div class="home">
     <!-- Please go <a href="https://twitchapps.com/tmi/" target="blank">here</a>, generate and copy the token -->
     <div>
-      <input type="text" placeholder="channel" id="username" v-model="name"/>
-      <button v-on:click="connect">Connect</button><br>
-      <input type="checkbox" v-model="saveToStorage" id="savetostore"/> <label for="savetostore">save voice for users</label><br>
-      <input type="checkbox" v-model="russian" id="russian"/> <label for="russian">Russian for all</label>
+      <form v-on:submit.prevent="onSubmit">
+        <input type="text" placeholder="channel" id="username" v-model="name"/>
+        <input type="submit" v-on:click="connect" value="Connect" /><br>
+        <input type="checkbox" v-model="saveToStorage" id="savetostore"/> <label for="savetostore">save voice for users</label><br>
+        <input type="checkbox" v-model="russian" id="russian"/> <label for="russian">Russian for all</label>
+      </form>
     </div>
     <hr>
     <div v-for="message in messages" :key=message>
@@ -17,15 +19,27 @@
 <script>
 import { ref, toRef, computed, watch } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
 export default {
+  props: {
+    channel: String
+  },
+
   setup(props) {
     const name = ref("");
     const store = useStore();
+    const router = useRouter();
+
     function connect() {
-      console.log(name.value);
+      router.push({path: '/' + name.value});
+      doConnect();
+    }
+    
+    function doConnect() {
       store.dispatch('connect', name.value);
     }
+
     const settings = {};
     const saveToStorage = ref(false);
     const russian = ref(false);
@@ -33,7 +47,7 @@ export default {
     if (props.channel) {
       const channel = toRef(props, 'channel');
       name.value = channel.value;
-      connect();
+      doConnect();
     }
 
     function save(user, voicesettings) {

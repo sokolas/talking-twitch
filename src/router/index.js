@@ -3,10 +3,13 @@ import Home from '../views/Home.vue'
 
 const routes = [
   {
-    path: '/:channel',
+    path: '/:channel?',
     name: 'Home',
     component: Home,
-    props: true
+    props: true,
+    meta: {
+      title: 'Talking'
+    }
   }
 ]
 
@@ -15,4 +18,8 @@ const router = createRouter({
   routes
 })
 
+router.beforeEach((to, from, next) => {
+  document.title = 'Talking : ' + to.params.channel;
+  next();
+ })
 export default router
