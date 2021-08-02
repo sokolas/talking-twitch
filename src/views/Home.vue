@@ -5,6 +5,7 @@
       <form v-on:submit.prevent="onSubmit">
         <input type="text" placeholder="channel" id="username" v-model="name"/>
         <input type="submit" v-on:click="connect" value="Connect" /><br>
+        <input type="checkbox" v-model="talking" id="talking"/> <label for="talking">enable talking</label><br>
         <input type="checkbox" v-model="saveToStorage" id="savetostore"/> <label for="savetostore">save voice for users</label><br>
         <input type="checkbox" v-model="russian" id="russian"/> <label for="russian">Russian for all</label>
       </form>
@@ -13,6 +14,10 @@
     <div v-for="message in messages" :key=message>
       <span><b>{{ message.name }} :</b> {{ message.text }}</span>
     </div>
+    <hr>
+    <form v-on:submit.prevent="onSubmit">
+      <input type="file" v-on:change="fileChanged" id="file"/> <label for="file">file</label>
+    </form>
   </div>
 </template>
 
@@ -27,6 +32,7 @@ export default {
   },
 
   setup(props) {
+    const dbversion = 1;
     const name = ref("");
     const store = useStore();
     const router = useRouter();
@@ -43,6 +49,7 @@ export default {
     const settings = {};
     const saveToStorage = ref(false);
     const russian = ref(false);
+    const talking = ref(false);
 
     if (props.channel) {
       const channel = toRef(props, 'channel');
@@ -72,9 +79,14 @@ export default {
     }
     
     watch(store.state.messages, (msgs) => {
+      if (!talking.value) {
+        return;
+      }
       const synth = window.speechSynthesis;
       const voices = synth.getVoices();
-      if (voices.length == 0) return;
+      if (voices.length == 0) {
+        return;
+      }
       const lastMessage = msgs[msgs.length - 1];
       const name = lastMessage.name;
       const text = lastMessage.text;
@@ -103,8 +115,44 @@ export default {
     });
     const messages = computed(() => store.state.messages);
 
+    function onupgradeneeded(event) {
+      const conn = event.target.result;
+      conn.createObjectStore('sounds');
+    }
+
+    function openDb(name) {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(name, dbversion);
+        request.onupgradeneeded = onupgradeneeded;
+        request.onsuccess = () => {
+          console.log('success');
+          resolve(request.result);
+        }
+        request.onerror = () => {
+          console.log('error');
+          reject(request.error);
+        }
+      });
+    }
+
+    async function fileChanged(event) {
+      const files = event.target.files;
+
+      const conn = await openDb('talking');
+      await new Promise((resolve, reject) => {
+        const tx = conn.transaction('sounds', 'readwrite');
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(new Error('file storage error'));
+
+        const store = tx.objectStore('sounds');
+        console.log(files[0]);
+        store.put(files[0], files[0].name);
+      });
+      conn.close();
+    }
+
     return {
-      name, connect, messages, saveToStorage, russian
+      name, connect, messages, saveToStorage, russian, fileChanged, talking
     }
   },
 
