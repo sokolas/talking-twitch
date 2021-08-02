@@ -2,6 +2,7 @@
   <div class="home">
     <!-- Please go <a href="https://twitchapps.com/tmi/" target="blank">here</a>, generate and copy the token -->
     <div>
+      Enable autoplay!
       <form v-on:submit.prevent="onSubmit">
         <input type="text" placeholder="channel" id="username" v-model="name"/>
         <input type="submit" v-on:click="connect" value="Connect" /><br>
