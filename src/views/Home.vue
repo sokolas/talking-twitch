@@ -15,10 +15,10 @@
     <form v-on:submit.prevent="onSubmit">
       <input type="file" v-on:change="fileChanged" id="file"/> <label for="file">Save sound</label>
     </form>
-    <div v-for="(file, index) in soundFiles" :key="index">
-      <audio :src="file.url" :id="file.uuid" :ref="el => audios[file.uuid] = el" />{{ file.name }}&nbsp;
-        <button :id="file.uuid" v-on:click="playSound">&gt;</button>
-        <button :id="file.uuid" v-on:click="deleteSound">X</button>
+    <div v-for="(file) in soundFiles" :key="file.uuid">
+      <audio :src="file.url" :ref="el => {if (el) audios[file.uuid] = el}" />{{ file.name }}&nbsp;
+      <button v-on:click="playSound(file.uuid)">&gt;</button>
+      <button v-on:click="deleteSound(file.uuid)">X</button>
     </div>
     <hr>
     <div>
@@ -26,9 +26,9 @@
         <input type="text" placeholder="!command" id="command" v-model="command"/>
         <input type="submit" value="Set" /><br>
       </form>
-      <div v-for="(value, index) in soundCommands" :key="index">
+      <div v-for="(value) in soundCommands" :key="value.uuid">
         {{value.name}}
-        <select v-on:change="setSound" :id="value.uuid">
+        <select v-on:change="setSound">
           <option value="">---</option>
           <template v-for="(file, fileindex) in soundFiles" :key="fileindex">
             <option :value="file.uuid" :selected="file.uuid === value.soundId">{{file.name}}</option>
@@ -188,8 +188,8 @@ export default {
 
         const store = tx.objectStore('sounds');
         const file = files[0];
-
-        store.put({file: file, uuid: v4()}, file.name);
+        const uuid = v4();
+        store.put({file, uuid}, file.name);
         const index = soundFiles.value.findIndex(f => f.name === file.name);
         if (index > -1) {
           soundFiles.value.splice(index, 1);
@@ -197,7 +197,7 @@ export default {
         soundFiles.value.push({
           name: file.name,
           url: URL.createObjectURL(file),
-          uuid: file.uuid
+          uuid: uuid
         });
       });
       conn.close();
@@ -255,8 +255,7 @@ export default {
       conn.close();
     }
 
-    async function deleteSound(e) {
-      const id = e.target.id;
+    async function deleteSound(id) {
       const index = soundFiles.value.findIndex((item) => item.uuid === id);
 
       if (index > -1) {
@@ -275,8 +274,7 @@ export default {
       }
     }
 
-    function playSound(e) {
-      const soundId = typeof e === 'string' ? e : e.target.id;
+    function playSound(soundId) {
       audios.value[soundId].play();
     }
 
