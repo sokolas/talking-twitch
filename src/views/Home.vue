@@ -1,45 +1,54 @@
 <template>
-  <div class="home">
+  <h2>Enable audio autoplay!</h2>
+  <div class="main">
     <!-- Please go <a href="https://twitchapps.com/tmi/" target="blank">here</a>, generate and copy the token -->
-    <div>
-      Enable autoplay!
+    <div class="vertical">
+      <h2>Channel and speech</h2><hr>
       <form v-on:submit.prevent="onSubmit">
         <input type="text" placeholder="channel" id="username" v-model="name"/>
-        <input type="submit" v-on:click="connect" value="Connect" /><br>
+        <button type="submit" v-on:click="connect"><font-awesome-icon icon="sign-in-alt"></font-awesome-icon></button><br>
         <input type="checkbox" v-model="talking" id="talking"/> <label for="talking">enable talking</label><br>
         <input type="checkbox" v-model="saveToStorage" id="savetostore"/> <label for="savetostore">save voice for users</label><br>
         <input type="checkbox" v-model="russian" id="russian"/> <label for="russian">Russian for all</label>
       </form>
     </div>
     <hr>
-    <form v-on:submit.prevent="onSubmit">
-      <input type="file" v-on:change="fileChanged" id="file"/> <label for="file">Save sound</label>
-    </form>
-    <div v-for="(file) in soundFiles" :key="file.uuid">
-      <audio :src="file.url" :ref="el => {if (el) audios[file.uuid] = el}" />{{ file.name }}&nbsp;
-      <button v-on:click="playSound(file.uuid)">&gt;</button>
-      <button v-on:click="deleteSound(file.uuid)">X</button>
-    </div>
-    <hr>
-    <div>
-      <form v-on:submit.prevent="addCommand">
-        <input type="text" placeholder="!command" id="command" v-model="command"/>
-        <input type="submit" value="Set" /><br>
-      </form>
-      <div v-for="(value) in soundCommands" :key="value.uuid">
-        {{value.name}}
-        <select v-on:change="setSound">
-          <option value="">---</option>
-          <template v-for="(file, fileindex) in soundFiles" :key="fileindex">
-            <option :value="file.uuid" :selected="file.uuid === value.soundId">{{file.name}}</option>
-          </template>
-        </select>
-        <button :id="value.uuid" v-on:click="deleteCommand">X</button>
+    <div  class="vertical">
+      <h2>Chat</h2><hr>
+      <div v-for="message in messages" :key=message>
+        <span><b>{{ message.name }} :</b> {{ message.text }}</span>
       </div>
     </div>
     <hr>
-    <div v-for="message in messages" :key=message>
-      <span><b>{{ message.name }} :</b> {{ message.text }}</span>
+    <div  class="vertical">
+      <h2>Sounds</h2><hr>
+      <form v-on:submit.prevent="onSubmit">
+        <input id="file-upload" type="file" v-on:change="fileChanged" />
+        <label for="file-upload" class="custom-file-upload" style="padding-left: 3px; padding-right: 3px;">Select a file</label>
+      </form>
+      <div class="horizontal" v-for="(file) in soundFiles" :key="file.uuid">
+        <audio :src="file.url" :ref="el => {if (el) audios[file.uuid] = el}" />{{ file.name }}&nbsp;
+        <button v-on:click="playSound(file.uuid)"><font-awesome-icon icon="play"></font-awesome-icon></button>
+        <button v-on:click="deleteSound(file.uuid)"><font-awesome-icon icon="trash-alt"></font-awesome-icon></button>
+      </div>
+    </div>
+    <hr>
+    <div class="vertical">
+      <h2>Commands</h2><hr>
+      <form v-on:submit.prevent="addCommand">
+        <input type="text" placeholder="!command" id="command" v-model="command"/>
+        <button type="submit"><font-awesome-icon icon="plus"></font-awesome-icon></button><br>
+      </form>
+      <div class="horizontal" v-for="(value) in soundCommands" :key="value.uuid">
+        {{value.name}}
+        <select v-on:change="setSound(value.uuid, $event)">
+          <option value="">---</option>
+          <template v-for="(file) in soundFiles" :key="file.uuid">
+            <option :value="file.uuid" :selected="file.uuid === value.soundId">{{file.name}}</option>
+          </template>
+        </select>
+        <button :id="value.uuid" v-on:click="deleteCommand(value.uuid)"><font-awesome-icon icon="trash-alt"></font-awesome-icon></button>
+      </div>
     </div>
   </div>
 </template>
@@ -232,8 +241,7 @@ export default {
       window.localStorage.setItem('soundCommands', JSON.stringify(soundCommands.value));
     }
 
-    function deleteCommand(e) {
-      const id = e.target.id;
+    function deleteCommand(id) {
       const index = soundCommands.value.findIndex((item) => item.uuid === id);
 
       if (index > -1) {
@@ -264,8 +272,7 @@ export default {
       }
     }
 
-    function setSound(e) {
-      const commandId = e.target.id;
+    function setSound(commandId, e) {
       const soundId = e.target.value;
       const index = soundCommands.value.findIndex((item) => item.uuid === commandId);
       if (index > -1) {
@@ -275,7 +282,9 @@ export default {
     }
 
     function playSound(soundId) {
-      audios.value[soundId].play();
+      if (audios.value[soundId]) {
+        audios.value[soundId].play();
+      }
     }
 
     loadSounds();
@@ -289,3 +298,76 @@ export default {
   name: 'Home'
 }
 </script>
+
+<style scoped>
+  .main {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .vertical {
+    margin-top: 20px;
+    flex-direction: column;
+    width: 250px;
+    max-width: 250px;
+  }
+
+  .horizontal {
+    margin-top: 5px;
+  }
+
+  h2 {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    text-align: center;
+  }
+
+  hr {
+    margin: 5px;
+    color: #b9936c;
+  }
+
+  button {
+    background-color: #dac292;
+    color: #706250;
+    border: 1px solid;
+    border-color: #b9936c;
+    border-radius: 3px;
+    margin-left: 3px;
+  }
+
+  input[type=submit] {
+    background-color: #dac292;
+    border: 1px solid;
+    border-color: #b9936c;
+    border-radius: 3px;
+    margin-left: 3px;
+  }
+
+  .custom-file-upload {
+    background-color: #dac292;
+    border: 1px solid;
+    border-color: #b9936c;
+    border-radius: 3px;
+    margin-left: 3px;
+  }
+
+  input[type=text] {
+    border: 1px solid;
+    border-color: #b9936c;
+    border-radius: 3px;
+  }
+
+  select {
+    border: 1px solid;
+    border-color: #b9936c;
+    border-radius: 3px;
+  }
+
+  input[type=file] {
+    display: none;
+  }
+
+
+</style>
