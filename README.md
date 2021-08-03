@@ -1,5 +1,8 @@
 # talking
 
+## Live demo
+https://sokolas.org/talking/
+
 ## Project setup
 ```
 npm install
