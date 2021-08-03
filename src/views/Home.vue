@@ -1,5 +1,5 @@
 <template>
-  <h2>Enable audio autoplay!</h2>
+  <!-- <h2>Enable audio autoplay!</h2> -->
   <div class="main">
     <!-- Please go <a href="https://twitchapps.com/tmi/" target="blank">here</a>, generate and copy the token -->
     <div class="vertical">
